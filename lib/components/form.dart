@@ -1,98 +1,194 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+
+class DateMask {
+  final TextEditingController textController = TextEditingController();
+  final MaskTextInputFormatter formatter;
+  final FormFieldValidator<String>? validator;
+  final TextInputType textInputType;
+
+  DateMask({
+    this.validator,
+    required this.formatter,
+    required this.textInputType,
+  });
+}
 
 class AddForm extends StatefulWidget {
-  const AddForm({super.key});
+  final GlobalKey<FormState> formKey;
+  const AddForm({super.key, required this.formKey});
 
   @override
   State<AddForm> createState() => _AddFormState();
 }
 
 class _AddFormState extends State<AddForm> {
-  final _formKey = GlobalKey<FormState>();
-  late DateTime _assignDate;
-  late String _docNum;
-  late String _company;
-  late DateTime _dueDate;
+  late final _formKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _formKey = widget.formKey;
+  }
+
+  final DateMask assignDateMask = DateMask(
+      formatter: MaskTextInputFormatter(mask: "##/##/####"),
+      textInputType: TextInputType.datetime,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return null;
+        }
+        final components = value.split("/");
+        if (components.length == 3) {
+          final day = int.tryParse(components[0]);
+          final month = int.tryParse(components[1]);
+          final year = int.tryParse(components[2]);
+
+          if (day != null && month != null && year != null) {
+            if (year < 1900) {
+              return "";
+            }
+            final date = DateTime(year, month, day);
+            if (date.year == year && date.month == month && date.day == day) {
+              return null;
+            }
+          }
+        }
+        return "";
+      });
+
+  final DateMask dueDateMask = DateMask(
+      formatter: MaskTextInputFormatter(mask: "##/##/####"),
+      textInputType: TextInputType.datetime,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return null;
+        }
+        final components = value.split("/");
+        if (components.length == 3) {
+          final day = int.tryParse(components[0]);
+          final month = int.tryParse(components[1]);
+          final year = int.tryParse(components[2]);
+          if (day != null && month != null && year != null) {
+            final date = DateTime(year, month, day);
+            if (year < 1900) {
+              return "";
+            }
+            if (date.year == year && date.month == month && date.day == day) {
+              return null;
+            }
+          }
+        }
+        return "";
+      });
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SizedBox(
-            width: 200,
-            child: TextFormField(
-              decoration: const InputDecoration(labelText: 'Ngày nhận'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an assign date';
-                }
-                _assignDate = DateTime.parse(value);
-                return null;
-              },
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Form(
+        key: _formKey,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: 200,
+              child: TextFormField(
+                controller: assignDateMask.textController,
+                inputFormatters: [
+                  const UpperCaseTextFormatter(),
+                  assignDateMask.formatter
+                ],
+                // strutStyle: StrutStyle(height: 2),
+                autocorrect: false,
+                keyboardType: assignDateMask.textInputType,
+                autovalidateMode: AutovalidateMode.always,
+                validator: assignDateMask.validator,
+                decoration: const InputDecoration(
+                  labelText: "Ngày nhận",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(
+                    color: Colors.red,
+                    fontSize: 0,
+                  ),
+                  hintText: "dd/mm/yyyy",
+                  hintStyle: TextStyle(color: Colors.grey),
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+              ),
             ),
-          ),
-          SizedBox(
-            width: 200,
-            child: TextFormField(
-              decoration: const InputDecoration(labelText: 'Số văn bản'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a document number';
-                }
-                _docNum = value;
-                return null;
-              },
+            SizedBox(
+              width: 200,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Số văn bản',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a document number';
+                  }
+                  return null;
+                },
+              ),
             ),
-          ),
-          SizedBox(
-            width: 600,
-            child: TextFormField(
-              decoration: const InputDecoration(labelText: 'Công ty'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a company';
-                }
-                _company = value;
-                return null;
-              },
+            SizedBox(
+              width: 600,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Công ty',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a company';
+                  }
+                  return null;
+                },
+              ),
             ),
-          ),
-          SizedBox(
-            width: 200,
-            child: TextFormField(
-              decoration: const InputDecoration(labelText: 'Ngày đến hạn'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a due date';
-                }
-                _dueDate = DateTime.parse(value);
-                return null;
-              },
+            SizedBox(
+              width: 200,
+              child: TextFormField(
+                controller: dueDateMask.textController,
+                inputFormatters: [
+                  const UpperCaseTextFormatter(),
+                  dueDateMask.formatter
+                ],
+                autocorrect: false,
+                keyboardType: dueDateMask.textInputType,
+                autovalidateMode: AutovalidateMode.always,
+                validator: dueDateMask.validator,
+                decoration: const InputDecoration(
+                  labelText: "Ngày tới hạn",
+                  border: OutlineInputBorder(),
+                  errorStyle: TextStyle(
+                    color: Colors.red,
+                    fontSize: 0,
+                  ),
+                  hintText: "dd/mm/yyyy",
+                  hintStyle: TextStyle(color: Colors.grey),
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+              ),
             ),
-          ),
-          // ElevatedButton(
-          //   onPressed: () {
-          //     if (_formKey.currentState!.validate()) {
-          //       // Create a new task object
-          //       Task newTask = Task(
-          //         _assignDate,
-          //         _docNum,
-          //         _company,
-          //         _dueDate,
-          //         _color,
-          //       );
-
-          //       // Handle the new task (e.g., save it to a database, send it to an API, etc.)
-          //       print('Task created: ${newTask}');
-          //     }
-          //   },
-          //   child: const Text('Submit'),
-          // ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+class UpperCaseTextFormatter implements TextInputFormatter {
+  const UpperCaseTextFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+        text: newValue.text.toUpperCase(), selection: newValue.selection);
   }
 }

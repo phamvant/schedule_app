@@ -9,6 +9,37 @@ class AddPage extends StatefulWidget {
 }
 
 class _AddPageState extends State<AddPage> {
+  final int formCount = 20;
+  final List<GlobalKey<FormState>> _formKeys = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize a list of GlobalKeys for the forms
+    for (int i = 0; i < formCount; i++) {
+      _formKeys.add(GlobalKey<FormState>());
+    }
+  }
+
+  void _submitAllForms() {
+    bool allValid = true;
+    for (var key in _formKeys) {
+      if (key.currentState?.validate() == false) {
+        allValid = false;
+      }
+    }
+    if (allValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('All forms are valid and processing data')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fix the errors in the forms')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +51,7 @@ class _AddPageState extends State<AddPage> {
           alignment: const Alignment(0.95, 0.95),
           child: FloatingActionButton.large(
             onPressed: () {
-              setState(() {});
+              _submitAllForms();
             },
             child: const Icon(Icons.save),
           ),
@@ -28,25 +59,6 @@ class _AddPageState extends State<AddPage> {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            // Positioned(
-            //     bottom: 20,
-            //     right: 20,
-            //     height: 100,
-            //     width: 100,
-            //     child: ElevatedButton(
-            //       style: ButtonStyle(
-            //         shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-            //             borderRadius: BorderRadius.circular(40))),
-            //         backgroundColor: WidgetStateProperty.all(
-            //           const Color.fromARGB(255, 125, 188, 239),
-            //         ),
-            //       ),
-            //       onPressed: () {},
-            //       child: const Text(
-            //         "Thêm",
-            //         style: TextStyle(color: Colors.white, fontSize: 20),
-            //       ),
-            //     )),
             Padding(
               padding: const EdgeInsets.only(left: 200, right: 200, top: 100),
               child: Column(
@@ -56,9 +68,11 @@ class _AddPageState extends State<AddPage> {
                       behavior: ScrollConfiguration.of(context)
                           .copyWith(scrollbars: false),
                       child: ListView.separated(
-                          itemBuilder: (context, item) => const AddForm(),
+                          itemBuilder: (context, index) => AddForm(
+                                formKey: _formKeys[index],
+                              ),
                           separatorBuilder: (context, index) =>
-                              const SizedBox(height: 100),
+                              const SizedBox(height: 50),
                           itemCount: 20),
                     ),
                   ),
