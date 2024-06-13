@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:memo/components/form.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../helper/sqlite.dart';
 
 class AddPage extends StatefulWidget {
   const AddPage({super.key});
@@ -9,35 +12,39 @@ class AddPage extends StatefulWidget {
 }
 
 class _AddPageState extends State<AddPage> {
-  final int formCount = 20;
+  final int formCount = 2;
   final List<GlobalKey<FormState>> _formKeys = [];
+  final List<GlobalKey<AddFormState>> _formStateKeys = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize a list of GlobalKeys for the forms
     for (int i = 0; i < formCount; i++) {
       _formKeys.add(GlobalKey<FormState>());
+      _formStateKeys.add(GlobalKey<AddFormState>());
     }
   }
 
-  void _submitAllForms() {
-    bool allValid = true;
-    for (var key in _formKeys) {
-      if (key.currentState?.validate() == false) {
-        allValid = false;
+  void add(formData) async {
+    var db = DatabaseHelper();
+    await db.database;
+    await DatabaseHelper().insertForm(formData);
+    await db.getTasks();
+  }
+
+  Future<bool> _submitAllForms() async {
+    bool isSubmit = false;
+    for (int i = 0; i < formCount; i++) {
+      if (_formKeys[i].currentState?.validate() == false) {
+        continue;
+      } else {
+        add(_formStateKeys[i].currentState!.getFormData());
+        isSubmit = true;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Đã lưu ghi chú')));
       }
     }
-    if (allValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('All forms are valid and processing data')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fix the errors in the forms')),
-      );
-    }
+    return isSubmit;
   }
 
   @override
@@ -50,8 +57,10 @@ class _AddPageState extends State<AddPage> {
         floatingActionButton: Align(
           alignment: const Alignment(0.95, 0.95),
           child: FloatingActionButton.large(
-            onPressed: () {
-              _submitAllForms();
+            onPressed: () async {
+              if (await _submitAllForms()) {
+                Navigator.pop(context);
+              }
             },
             child: const Icon(Icons.save),
           ),
@@ -69,11 +78,13 @@ class _AddPageState extends State<AddPage> {
                           .copyWith(scrollbars: false),
                       child: ListView.separated(
                           itemBuilder: (context, index) => AddForm(
+                                key: _formStateKeys[index],
                                 formKey: _formKeys[index],
+                                formStateKey: _formStateKeys[index],
                               ),
                           separatorBuilder: (context, index) =>
                               const SizedBox(height: 50),
-                          itemCount: 20),
+                          itemCount: formCount),
                     ),
                   ),
                 ],

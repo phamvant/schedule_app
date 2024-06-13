@@ -17,71 +17,98 @@ class DateMask {
 
 class AddForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
-  const AddForm({super.key, required this.formKey});
+  final GlobalKey<AddFormState> formStateKey;
+  const AddForm({super.key, required this.formKey, required this.formStateKey});
 
   @override
-  State<AddForm> createState() => _AddFormState();
+  State<AddForm> createState() => AddFormState();
 }
 
-class _AddFormState extends State<AddForm> {
+class AddFormState extends State<AddForm> {
   late final _formKey;
+  late final _formStateKey;
+  late DateTime _assignDate;
+  late String _docNum;
+  late String _company;
+  late DateTime _dueDate;
 
   @override
   void initState() {
     super.initState();
+    _formStateKey = widget.formStateKey;
     _formKey = widget.formKey;
   }
 
-  final DateMask assignDateMask = DateMask(
-      formatter: MaskTextInputFormatter(mask: "##/##/####"),
-      textInputType: TextInputType.datetime,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return null;
-        }
-        final components = value.split("/");
-        if (components.length == 3) {
-          final day = int.tryParse(components[0]);
-          final month = int.tryParse(components[1]);
-          final year = int.tryParse(components[2]);
+  Map<String, dynamic> getFormData() {
+    return {
+      'assignDate': _assignDate.toIso8601String(),
+      'docNum': _docNum,
+      'company': _company,
+      'dueDate': _dueDate.toIso8601String(),
+      'color': 0,
+      'isDone': 0
+    };
+  }
 
-          if (day != null && month != null && year != null) {
-            if (year < 1900) {
-              return "";
-            }
-            final date = DateTime(year, month, day);
-            if (date.year == year && date.month == month && date.day == day) {
-              return null;
-            }
+  String? _validateDueDate(String? value) {
+    {
+      if (value == null || value.isEmpty) {
+        return "";
+      }
+      final components = value.split("/");
+      if (components.length == 3) {
+        final day = int.tryParse(components[0]);
+        final month = int.tryParse(components[1]);
+        final year = int.tryParse(components[2]);
+        if (day != null && month != null && year != null) {
+          final date = DateTime(year, month, day);
+          if (year < 1900) {
+            return "";
+          }
+          if (date.year == year && date.month == month && date.day == day) {
+            _dueDate = date;
+            return null;
           }
         }
+      }
+      return "";
+    }
+  }
+
+  final DateMask assignDateMask = DateMask(
+    formatter: MaskTextInputFormatter(mask: "##/##/####"),
+    textInputType: TextInputType.datetime,
+  );
+
+  String? _validateAssignDate(String? value) {
+    {
+      if (value == null || value.isEmpty) {
         return "";
-      });
+      }
+      final components = value.split("/");
+      if (components.length == 3) {
+        final day = int.tryParse(components[0]);
+        final month = int.tryParse(components[1]);
+        final year = int.tryParse(components[2]);
+        if (day != null && month != null && year != null) {
+          final date = DateTime(year, month, day);
+          if (year < 1900) {
+            return "";
+          }
+          if (date.year == year && date.month == month && date.day == day) {
+            _assignDate = date;
+            return null;
+          }
+        }
+      }
+      return "";
+    }
+  }
 
   final DateMask dueDateMask = DateMask(
-      formatter: MaskTextInputFormatter(mask: "##/##/####"),
-      textInputType: TextInputType.datetime,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return null;
-        }
-        final components = value.split("/");
-        if (components.length == 3) {
-          final day = int.tryParse(components[0]);
-          final month = int.tryParse(components[1]);
-          final year = int.tryParse(components[2]);
-          if (day != null && month != null && year != null) {
-            final date = DateTime(year, month, day);
-            if (year < 1900) {
-              return "";
-            }
-            if (date.year == year && date.month == month && date.day == day) {
-              return null;
-            }
-          }
-        }
-        return "";
-      });
+    formatter: MaskTextInputFormatter(mask: "##/##/####"),
+    textInputType: TextInputType.datetime,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +127,12 @@ class _AddFormState extends State<AddForm> {
                   const UpperCaseTextFormatter(),
                   assignDateMask.formatter
                 ],
+
                 // strutStyle: StrutStyle(height: 2),
                 autocorrect: false,
                 keyboardType: assignDateMask.textInputType,
-                autovalidateMode: AutovalidateMode.always,
-                validator: assignDateMask.validator,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateAssignDate,
                 decoration: const InputDecoration(
                   labelText: "Ngày nhận",
                   border: OutlineInputBorder(),
@@ -122,14 +150,20 @@ class _AddFormState extends State<AddForm> {
             SizedBox(
               width: 200,
               child: TextFormField(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: const InputDecoration(
                   labelText: 'Số văn bản',
                   border: OutlineInputBorder(),
+                  errorStyle: TextStyle(
+                    color: Colors.red,
+                    fontSize: 0,
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a document number';
+                    return '';
                   }
+                  _docNum = value;
                   return null;
                 },
               ),
@@ -137,14 +171,20 @@ class _AddFormState extends State<AddForm> {
             SizedBox(
               width: 600,
               child: TextFormField(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: const InputDecoration(
                   labelText: 'Công ty',
                   border: OutlineInputBorder(),
+                  errorStyle: TextStyle(
+                    color: Colors.red,
+                    fontSize: 0,
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a company';
+                    return '';
                   }
+                  _company = value;
                   return null;
                 },
               ),
@@ -159,8 +199,8 @@ class _AddFormState extends State<AddForm> {
                 ],
                 autocorrect: false,
                 keyboardType: dueDateMask.textInputType,
-                autovalidateMode: AutovalidateMode.always,
-                validator: dueDateMask.validator,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateDueDate,
                 decoration: const InputDecoration(
                   labelText: "Ngày tới hạn",
                   border: OutlineInputBorder(),

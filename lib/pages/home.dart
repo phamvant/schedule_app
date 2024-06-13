@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:memo/helper/sqlite.dart';
 import 'package:memo/models/task.dart';
-import 'package:memo/models/data.dart';
 import 'package:memo/components/task_card.dart';
 
 import '../services/navigation.dart';
@@ -13,18 +13,35 @@ class HomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<HomePage> {
-  late List<Task> taskList;
+  late List<Task> taskList = [];
 
   @override
   void initState() {
     super.initState();
-    taskList = sampleTasks;
+    getData();
+  }
+
+  getData() async {
+    var db = DatabaseHelper();
+    await db.database;
+    var tasks = await db.getTasks();
+    setState(() {
+      taskList = tasks;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        centerTitle: true,
+        toolbarHeight: 100,
+        backgroundColor: Colors.grey.shade100,
+        surfaceTintColor: Colors.transparent,
+        // backgroundColor: const Color.fromARGB(255, 158, 211, 255),
+        title: const Text("Nhắc lịch văn bản"),
+      ),
       floatingActionButton: Align(
         alignment: const Alignment(0.95, 0.95),
         child: FloatingActionButton.large(
@@ -37,31 +54,57 @@ class MyHomePageState extends State<HomePage> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 250,
-          right: 250,
-          top: 100,
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: ScrollConfiguration(
-                behavior:
-                    ScrollConfiguration.of(context).copyWith(scrollbars: false),
-                child: ListView.separated(
-                  scrollDirection: Axis.vertical,
-                  itemCount: taskList.length,
-                  itemBuilder: (context, item) => TaskCard(
-                    taskList[item],
-                  ),
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(height: 40),
+          padding: const EdgeInsets.only(
+            left: 150,
+            right: 150,
+            // top: 50,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context)
+                            .copyWith(scrollbars: false),
+                        child: ListView.separated(
+                          scrollDirection: Axis.vertical,
+                          itemCount: taskList.length,
+                          itemBuilder: (context, item) => TaskCard(
+                            taskList[item],
+                          ),
+                          separatorBuilder: (BuildContext context, int index) =>
+                              const SizedBox(height: 40),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context)
+                            .copyWith(scrollbars: false),
+                        child: ListView.separated(
+                          scrollDirection: Axis.vertical,
+                          itemCount: taskList.length,
+                          itemBuilder: (context, item) => TaskCard(
+                            taskList[item],
+                          ),
+                          separatorBuilder: (BuildContext context, int index) =>
+                              const SizedBox(height: 40),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )),
     );
   }
 }

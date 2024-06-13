@@ -1,21 +1,22 @@
 import 'dart:ui';
 
 class Task {
-  final int _idx = 1;
+  final int _idx;
   final DateTime _assignDate;
   final String _docNum;
   final String _company;
   final DateTime _dueDate;
-  bool isDone = false;
-
-  final Color _color;
+  int isDone = 0;
+  final int _color;
 
   Task(
+    this._idx,
     this._assignDate,
     this._docNum,
     this._company,
     this._dueDate,
     this._color,
+    this.isDone,
   );
 
   int get idx => _idx;
@@ -23,5 +24,5 @@ class Task {
   String get docNum => _docNum;
   String get company => _company;
   DateTime get dueDate => _dueDate;
-  Color get color => _color;
+  int get color => _color;
 }
