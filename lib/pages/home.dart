@@ -13,7 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<HomePage> {
-  late List<Task> taskList = [];
+  late List<Task> _taskList = [];
+  late List<Task> _warningList = [];
 
   @override
   void initState() {
@@ -24,14 +25,25 @@ class MyHomePageState extends State<HomePage> {
   getData() async {
     var db = DatabaseHelper();
     await db.database;
+
     var tasks = await db.getTasks();
     setState(() {
-      taskList = tasks;
+      var warningList =
+          tasks.where((task) => task.duration < 7 && task.isDone == 0).toList();
+      warningList.sort((a, b) => a.duration.compareTo(b.duration));
+      _warningList = warningList;
+
+      _taskList = tasks
+          .where((task) => task.duration > 7 && task.isDone == 0)
+          .toList()
+          .reversed
+          .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -39,7 +51,6 @@ class MyHomePageState extends State<HomePage> {
         toolbarHeight: 100,
         backgroundColor: Colors.grey.shade100,
         surfaceTintColor: Colors.transparent,
-        // backgroundColor: const Color.fromARGB(255, 158, 211, 255),
         title: const Text("Nhắc lịch văn bản"),
       ),
       floatingActionButton: Align(
@@ -47,16 +58,18 @@ class MyHomePageState extends State<HomePage> {
         child: FloatingActionButton.large(
           onPressed: () {
             setState(() {
-              Navigator.of(context).push(createRoute());
+              Navigator.of(context)
+                  .push(createRoute())
+                  .then((val) => getData());
             });
           },
           child: const Icon(Icons.add),
         ),
       ),
       body: Padding(
-          padding: const EdgeInsets.only(
-            left: 150,
-            right: 150,
+          padding: EdgeInsets.only(
+            left: width > 1700 ? width * 0.13 : width * 0.03,
+            right: width > 1700 ? width * 0.13 : width * 0.03,
             // top: 50,
           ),
           child: Row(
@@ -68,14 +81,14 @@ class MyHomePageState extends State<HomePage> {
                       child: ScrollConfiguration(
                         behavior: ScrollConfiguration.of(context)
                             .copyWith(scrollbars: false),
-                        child: ListView.separated(
+                        child: ListView.builder(
                           scrollDirection: Axis.vertical,
-                          itemCount: taskList.length,
+                          itemCount: _taskList.length,
                           itemBuilder: (context, item) => TaskCard(
-                            taskList[item],
+                            onDialogClose: getData,
+                            updateHomeData: getData,
+                            _taskList[item],
                           ),
-                          separatorBuilder: (BuildContext context, int index) =>
-                              const SizedBox(height: 40),
                         ),
                       ),
                     ),
@@ -89,14 +102,14 @@ class MyHomePageState extends State<HomePage> {
                       child: ScrollConfiguration(
                         behavior: ScrollConfiguration.of(context)
                             .copyWith(scrollbars: false),
-                        child: ListView.separated(
+                        child: ListView.builder(
                           scrollDirection: Axis.vertical,
-                          itemCount: taskList.length,
+                          itemCount: _warningList.length,
                           itemBuilder: (context, item) => TaskCard(
-                            taskList[item],
+                            onDialogClose: getData,
+                            updateHomeData: getData,
+                            _warningList[item],
                           ),
-                          separatorBuilder: (BuildContext context, int index) =>
-                              const SizedBox(height: 40),
                         ),
                       ),
                     ),
@@ -109,28 +122,36 @@ class MyHomePageState extends State<HomePage> {
   }
 }
 
-class AddButton extends StatelessWidget {
-  const AddButton({
-    super.key,
-  });
+// class AddButton extends StatelessWidget {
+//   Function() getRequests;
 
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ButtonStyle(
-        shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(40))),
-        backgroundColor: WidgetStateProperty.all(
-          const Color.fromARGB(255, 125, 188, 239),
-        ),
-      ),
-      onPressed: () {
-        Navigator.of(context).push(createRoute());
-      },
-      child: const Text(
-        "Thêm ghi chú",
-        style: TextStyle(color: Colors.white, fontSize: 20),
-      ),
-    );
-  }
-}
+//   const AddButton({
+//     super.key,
+//     required this.getRequests,
+//   });
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ElevatedButton(
+//       style: ButtonStyle(
+//         shape: WidgetStatePropertyAll(
+//             RoundedRectangleBorder(borderRadius: BorderRadius.circular(40))),
+//         backgroundColor: WidgetStateProperty.all(
+//           const Color.fromARGB(255, 125, 188, 239),
+//         ),
+//       ),
+//       onPressed: () {
+//         Navigator.of(context)
+//             .push(createRoute())
+//             .then((val) => val ? getRequests() : null);
+//         // Navigator.of(context)
+//         //     .push(createRoute())
+//         //     .then((val) => val ? _getRequests() : null);
+//       },
+//       child: const Text(
+//         "Thêm ghi chú",
+//         style: TextStyle(color: Colors.white, fontSize: 20),
+//       ),
+//     );
+//   }
+// }

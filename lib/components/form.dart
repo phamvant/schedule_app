@@ -18,7 +18,12 @@ class DateMask {
 class AddForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final GlobalKey<AddFormState> formStateKey;
-  const AddForm({super.key, required this.formKey, required this.formStateKey});
+  final int idx;
+  const AddForm(
+      {super.key,
+      required this.formKey,
+      required this.formStateKey,
+      required this.idx});
 
   @override
   State<AddForm> createState() => AddFormState();
@@ -27,6 +32,7 @@ class AddForm extends StatefulWidget {
 class AddFormState extends State<AddForm> {
   late final _formKey;
   late final _formStateKey;
+  late final int _idx;
   late DateTime _assignDate;
   late String _docNum;
   late String _company;
@@ -37,6 +43,7 @@ class AddFormState extends State<AddForm> {
     super.initState();
     _formStateKey = widget.formStateKey;
     _formKey = widget.formKey;
+    _idx = widget.idx;
   }
 
   Map<String, dynamic> getFormData() {
@@ -66,6 +73,10 @@ class AddFormState extends State<AddForm> {
             return "";
           }
           if (date.year == year && date.month == month && date.day == day) {
+            if (date.difference(_assignDate).inDays < 1) {
+              return "";
+            }
+
             _dueDate = date;
             return null;
           }
@@ -116,106 +127,123 @@ class AddFormState extends State<AddForm> {
       padding: const EdgeInsets.only(top: 20),
       child: Form(
         key: _formKey,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(
-              width: 200,
-              child: TextFormField(
-                controller: assignDateMask.textController,
-                inputFormatters: [
-                  const UpperCaseTextFormatter(),
-                  assignDateMask.formatter
-                ],
-
-                // strutStyle: StrutStyle(height: 2),
-                autocorrect: false,
-                keyboardType: assignDateMask.textInputType,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: _validateAssignDate,
-                decoration: const InputDecoration(
-                  labelText: "Ngày nhận",
-                  border: OutlineInputBorder(),
-                  errorStyle: TextStyle(
-                    color: Colors.red,
-                    fontSize: 0,
-                  ),
-                  hintText: "dd/mm/yyyy",
-                  hintStyle: TextStyle(color: Colors.grey),
-                  fillColor: Colors.white,
-                  filled: true,
-                ),
+        child: Padding(
+          padding: _idx == 20
+              ? const EdgeInsets.symmetric(vertical: 50)
+              : const EdgeInsets.only(top: 50),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade700)),
+                child: Center(
+                    child: Text(
+                  _idx.toString(),
+                  style: TextStyle(fontSize: 18, color: Colors.grey.shade700),
+                )),
               ),
-            ),
-            SizedBox(
-              width: 200,
-              child: TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                decoration: const InputDecoration(
-                  labelText: 'Số văn bản',
-                  border: OutlineInputBorder(),
-                  errorStyle: TextStyle(
-                    color: Colors.red,
-                    fontSize: 0,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '';
-                  }
-                  _docNum = value;
-                  return null;
-                },
-              ),
-            ),
-            SizedBox(
-              width: 600,
-              child: TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                decoration: const InputDecoration(
-                  labelText: 'Công ty',
-                  border: OutlineInputBorder(),
-                  errorStyle: TextStyle(
-                    color: Colors.red,
-                    fontSize: 0,
+              SizedBox(
+                width: 200,
+                child: TextFormField(
+                  controller: assignDateMask.textController,
+                  inputFormatters: [
+                    const UpperCaseTextFormatter(),
+                    assignDateMask.formatter
+                  ],
+                  autocorrect: false,
+                  keyboardType: assignDateMask.textInputType,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: _validateAssignDate,
+                  decoration: const InputDecoration(
+                    labelText: "Ngày nhận",
+                    border: OutlineInputBorder(),
+                    errorStyle: TextStyle(
+                      color: Colors.red,
+                      fontSize: 0,
+                    ),
+                    hintText: "dd/mm/yyyy",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    fillColor: Colors.transparent,
+                    filled: true,
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '';
-                  }
-                  _company = value;
-                  return null;
-                },
               ),
-            ),
-            SizedBox(
-              width: 200,
-              child: TextFormField(
-                controller: dueDateMask.textController,
-                inputFormatters: [
-                  const UpperCaseTextFormatter(),
-                  dueDateMask.formatter
-                ],
-                autocorrect: false,
-                keyboardType: dueDateMask.textInputType,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: _validateDueDate,
-                decoration: const InputDecoration(
-                  labelText: "Ngày tới hạn",
-                  border: OutlineInputBorder(),
-                  errorStyle: TextStyle(
-                    color: Colors.red,
-                    fontSize: 0,
+              SizedBox(
+                width: 200,
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    fillColor: Colors.white,
+                    labelText: 'Số văn bản',
+                    border: OutlineInputBorder(),
+                    errorStyle: TextStyle(
+                      color: Colors.red,
+                      fontSize: 0,
+                    ),
                   ),
-                  hintText: "dd/mm/yyyy",
-                  hintStyle: TextStyle(color: Colors.grey),
-                  fillColor: Colors.white,
-                  filled: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '';
+                    }
+                    _docNum = value;
+                    return null;
+                  },
                 ),
               ),
-            ),
-          ],
+              SizedBox(
+                width: 600,
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    labelText: 'Công ty',
+                    border: OutlineInputBorder(),
+                    errorStyle: TextStyle(
+                      color: Colors.red,
+                      fontSize: 0,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return '';
+                    }
+                    _company = value;
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(
+                width: 200,
+                child: TextFormField(
+                  controller: dueDateMask.textController,
+                  inputFormatters: [
+                    const UpperCaseTextFormatter(),
+                    dueDateMask.formatter
+                  ],
+                  autocorrect: false,
+                  keyboardType: dueDateMask.textInputType,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: _validateDueDate,
+                  decoration: const InputDecoration(
+                    labelText: "Ngày tới hạn",
+                    border: OutlineInputBorder(),
+                    errorStyle: TextStyle(
+                      color: Colors.red,
+                      fontSize: 0,
+                    ),
+                    hintText: "dd/mm/yyyy",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    fillColor: Colors.transparent,
+                    filled: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

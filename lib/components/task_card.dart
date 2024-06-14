@@ -1,20 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:memo/helper/sqlite.dart';
 import '../models/task.dart';
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   late Task task;
+  final VoidCallback onDialogClose;
+  final VoidCallback updateHomeData;
 
-  TaskCard(this.task, {super.key});
+  TaskCard(this.task,
+      {super.key, required this.onDialogClose, required this.updateHomeData});
+
+  @override
+  State<TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
+  deleteTask() async {
+    DatabaseHelper().delete(widget.task.idx);
+  }
+
+  toggleDone(int val) async {
+    DatabaseHelper().toogleDone(widget.task.idx, val);
+  }
 
   @override
   Widget build(context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       height: 140,
       decoration: BoxDecoration(
-        // color: const Color.fromARGB(255, 255, 217, 0),
-        color: Colors.white,
+        color: widget.task.colors,
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(
@@ -29,55 +45,46 @@ class TaskCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Row(
           children: [
-            // Container(
-            //   decoration: BoxDecoration(
-            //       color: Colors.blueAccent,
-            //       borderRadius: BorderRadius.circular(10)),
-            //   width: 40,
-            //   height: 40,
-            //   child: Center(
-            //       child: Text(
-            //     "${task.idx}",
-            //     style: const TextStyle(color: Colors.white, fontSize: 20),
-            //   )),
-            //   // width: double.infinity,
-            //   // height: double.infinity,
-            // ),
-            // Divide(),
-
-            // Divide(),
             Expanded(
               // width: 100,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(
-                    "#13248384",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.grey.shade900,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        "#${widget.task.docNum}",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.grey.shade900,
+                        ),
+                      ),
                     ),
-                  ),
-                  Divide(isHorizontal: true),
-                  Text(
-                    // task.docNum,
-                    "when low sing daily merely am team describe held pull due atomic maybe page jack before harbor ",
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 18,
-                      color: Colors.grey.shade700,
+                    // Divide(isHorizontal: true),
+                    Expanded(
+                      child: Text(
+                        // task.docNum,
+                        widget.task.company,
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 18,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-
             Divide(),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
@@ -90,9 +97,8 @@ class TaskCard extends StatelessWidget {
                       SizedBox(
                         width: 100,
                         child: Text(
-                          DateFormat.yMd().format(task.assignDate),
+                          DateFormat.yMd().format(widget.task.assignDate),
                           style: TextStyle(
-                            // fontWeight: FontWeight.bold,
                             fontSize: 18,
                             color: Colors.grey.shade700,
                           ),
@@ -100,6 +106,7 @@ class TaskCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // Divide(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -109,7 +116,7 @@ class TaskCard extends StatelessWidget {
                       ),
                       SizedBox(
                         child: Text(
-                          DateFormat.yMd().format(task.dueDate),
+                          DateFormat.yMd().format(widget.task.dueDate),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -122,33 +129,75 @@ class TaskCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Expanded(
-            //   // width: 700,
-            //   child: Text(
-            //     task.company,
-            //     style: TextStyle(
-            //       fontWeight: FontWeight.bold,
-            //       fontSize: 18,
-            //       color: Colors.grey.shade700,
-            //     ),
-            //   ),
-            // ),
-            // const Divide(),
-
             Divide(),
-            Container(
-              decoration: BoxDecoration(
-                  color: task.isDone == 1 ? Colors.green : Colors.blue,
-                  borderRadius: BorderRadius.circular(10)),
-              width: 40,
-              height: 40,
-              child: Center(
-                  child: Text(
-                task.isDone == 1 ? "v" : "x",
-                style: const TextStyle(color: Colors.white, fontSize: 20),
-              )),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5, top: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                      onPressed: () => EditDialog(context),
+                      icon: const Icon(Icons.edit)),
+                  IconButton(
+                      iconSize: 30,
+                      onPressed: () {
+                        setState(() {
+                          widget.task.isDone = widget.task.isDone == 1 ? 0 : 1;
+                          toggleDone(widget.task.isDone);
+                          widget.updateHomeData();
+                        });
+                      },
+                      icon: widget.task.isDone == 1
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.green,
+                            )
+                          : const Icon(
+                              Icons.check_circle_outline_rounded,
+                            ))
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<String?> EditDialog(BuildContext context) {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 50),
+          child: SizedBox(
+            width: 100,
+            height: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: IconButton.filled(
+                      onPressed: () async {
+                        //DELETE BUTTON
+                        await deleteTask();
+                        Navigator.pop(context);
+                        widget.onDialogClose();
+                      },
+                      icon: const Icon(Icons.delete)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Quay lại'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
