@@ -8,7 +8,6 @@ import 'package:memo/pages/home.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows) {
-    // Use the ffi on windows
     sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
   }

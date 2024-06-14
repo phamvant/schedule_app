@@ -121,37 +121,3 @@ class MyHomePageState extends State<HomePage> {
     );
   }
 }
-
-// class AddButton extends StatelessWidget {
-//   Function() getRequests;
-
-//   const AddButton({
-//     super.key,
-//     required this.getRequests,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ElevatedButton(
-//       style: ButtonStyle(
-//         shape: WidgetStatePropertyAll(
-//             RoundedRectangleBorder(borderRadius: BorderRadius.circular(40))),
-//         backgroundColor: WidgetStateProperty.all(
-//           const Color.fromARGB(255, 125, 188, 239),
-//         ),
-//       ),
-//       onPressed: () {
-//         Navigator.of(context)
-//             .push(createRoute())
-//             .then((val) => val ? getRequests() : null);
-//         // Navigator.of(context)
-//         //     .push(createRoute())
-//         //     .then((val) => val ? _getRequests() : null);
-//       },
-//       child: const Text(
-//         "Thêm ghi chú",
-//         style: TextStyle(color: Colors.white, fontSize: 20),
-//       ),
-//     );
-//   }
-// }

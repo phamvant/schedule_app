@@ -103,10 +103,8 @@ class DatabaseHelper {
   }
 
   Future<List<Task>> getTasks() async {
-    // Get a reference to the database.
     final db = await database;
 
-    // Query the table for all the dogs.
     final List<Map<String, Object?>> taskList = await db.query('task');
 
     return [
@@ -142,6 +140,4 @@ class DatabaseHelper {
     await db.update("task", {'isDone': val, 'doneTime': doneTime},
         where: 'id = ?', whereArgs: [idx]);
   }
-
-  // Add more CRUD operations as needed
 }

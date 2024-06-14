@@ -46,7 +46,6 @@ class _DonePageState extends State<DonePage> {
           padding: EdgeInsets.only(
             left: width > 1700 ? width * 0.13 : width * 0.03,
             right: width > 1700 ? width * 0.13 : width * 0.03,
-            // top: 50,
           ),
           child: Center(
             child: Column(
